@@ -22,6 +22,7 @@
 5. 2.6.3 启动活动的最佳写法（P74），能不能将actionStart（）方法写在BaseActivity中，然后通过继承来达到通用的效果？
 
    - 目前想法：1.将data参数改为Bundle；2.SecondActivity.class这个自己写的活动名，通过类似于this效果的一些方法来自动获取当前活动名。
+   - 18.3.15更新：首先这个想法就和书中的要求相悖，书中创建这个方法的原因是不知道需要传递哪些参数，所以这个方法的参数列表明确列出了需要传递哪些参数。如果是为了精简代码，可以实现一行代码启动任意Activity的效果。[详见启动活动的最佳写法](#3.启动活动的最佳写法)。
 
 ## concrete contents
 
@@ -83,6 +84,12 @@ Android是通过任务（Task）管理活动，一个任务就是一组存储在
 
 #### 四种启动模式
 
+- standard
+- singleTop
+- singleTask：如果不存在实例，则新建一个task并将该Activity作为根；如果存在实例，则将该实例上方的所有活动出栈。
+  - Regardless of whether an activity starts in a new task or in the same task as the activity that started it, the **Back** button always takes the user to the previous activity. However, if you start an activity that specifies the `singleTask` launch mode, then if an instance of that activity exists in a background task, that whole task is brought to the foreground. At this point, the back stack now includes all activities from the task brought forward, at the top of the stack. 
+- singleInstance：新建一个Task，该Task只能容纳该Activity。
+
 #### 设置启动模式的两种方式
 
 1. launchMode
@@ -95,3 +102,36 @@ Android是通过任务（Task）管理活动，一个任务就是一组存储在
 #### 2.随时随地退出程序
 
 #### 3.启动活动的最佳写法
+
+除了书上的这种写法外，还有一种方法：
+
+1. 创建一个BaseActivity继承AppCompatActivity
+
+```Java
+public class BaseActivity extends AppCompatActivity {
+    public static void actionStart(Context context, Class c) {
+        Intent intent = new Intent(context, c);
+        context.startActivity(intent);
+    }
+    public static void actionStart(Context context, Bundle bundle, Class c) {
+        Intent intent = new Intent(context, c);
+        intent.putExtra("Bundle", bundle);
+        context.startActivity(intent);
+    }//如果用Kotlin写，将Bundle设为默认参数，应该可以只写一个方法。
+}
+```
+
+2. 将Activity继承BaseActivity并调用actionStart方法
+
+```Java
+public class MainActivity extends BaseActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        actionStart(this,Main2Activity.class);
+    }
+}
+```
+

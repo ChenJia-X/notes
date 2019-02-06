@@ -3,15 +3,13 @@
 标签（空格分隔）： 未分类
 
 ---
-## 疑问
+## Question
 1. 3.5.2，inflate()的第三个参数false是起什么作用？为什么不添加父布局？[定位](#3.5.2-定制listview的界面)
 2. 能否写出通用的RecyclerViewAdapter和ViewHolder？
 3. 观察者模式
 
-### English中文
-
 ---
-## 知识结构
+## Content
 ### 3.2 常用控件/组件的使用方法 P77
 #### 3.2.1 TextView
 - 文字默认为居左上角对齐，通过`android:gravity`来指定文字的对齐方式。
@@ -319,7 +317,24 @@ private void initFruits(){
         TextView fruitName;
     }
 ```
+注意：可能会有人问ViewHolder静态类结合缓存convertView与直接使用convertView有什么区别吗，是否重复了在这里，官方给出了解释
+
+> To work efficiently the adapter implemented here uses two techniques:
+> -It reuses the convertView passed to getView() to avoid inflating View when it is not necessary
+>
+> （译:重用缓存convertView传递给getView()方法来避免填充不必要的视图）
+> -It uses the ViewHolder pattern to avoid calling findViewById() when it is not necessary
+>
+> （译：使用ViewHolder模式来避免没有必要的调用findViewById()：因为太多的findViewById也会影响性能）
+> ViewHolder类的作用
+> -The ViewHolder pattern consists in storing a data structure in the tag of the view
+> returned by getView().This data structures contains references to the views we want to bind data to,
+> thus avoiding calling to findViewById() every time getView() is invoked
+>
+> （译：ViewHolder模式通过getView()方法返回的视图的标签(Tag)中存储一个数据结构，这个数据结构包含了指向我们
+
 #### 3.5.4 ListView的点击事件
+
 ```java
 listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
     @Override

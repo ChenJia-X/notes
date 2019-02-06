@@ -1,5 +1,11 @@
 # Chapter 5 Broadcast
 
+## Question
+
+1. Do not start activities from broadcast receivers because the user experience is jarring; especially if there is more than one receiver. Instead, consider displaying a [notification](https://developer.android.com/guide/topics/ui/notifiers/notifications.html).
+
+
+
 ## Notification
 
 1. 广播接收器中==不允许开启线程==
@@ -8,10 +14,18 @@
 
 ## Model
 
-1. 广播机制有BroadcastReceiver、Broadcast两部分。
-2. BroadcastReceiver、Broadcast根据作用范围分为全局（系统）以及local。
+1. 广播机制有register BroadcastReceiver、send Broadcast两部分。
+2. BroadcastReceiver分类
+   - 静态注册 manifest registration
+   - 动态注册 context registration
+     - 全局
+     - 本地：通过LocalBroadcastManager进行send和register。
+3. Broadcast分类
+   - normal
+   - ordered
+4. 发送自定义广播
 
-## Concrete content
+## Content
 
 #### 5.1 Broadcast机制简介
 
@@ -69,6 +83,8 @@
 
 
 ##### 5.2.2 静态注册广播接收器
+
+注意：Android 8.0 中移除了大部分的implicit广播，[详见](https://developer.android.com/about/versions/oreo/background.html#broadcasts)
 
 1. 新建一个继承`BroadcastReceiver`的类，并重写`onReceive()`。
 
@@ -136,3 +152,30 @@ sendOrderedBroadcast(intent,null);//第二个参数是一个与权限有关的�
 
 
 #### 5.5 广播的最佳实践——实现强制下线的功能
+
+注意：
+
+1.只需要栈顶的Activity接收广播即可，所以需要在onPause()中unRegisterReceiver()。
+
+2.最好使用本地广播。
+
+
+
+#### 5.6 [Security considerations and best practices](https://developer.android.com/guide/components/broadcasts.html#security_considerations_and_best_practices)
+
+- Try to use local broadcasts
+- Try to use context registration over manifest declaration
+- Do not broadcast sensitive information using an implicit intent. There are three ways to control who can receiver your broadcasts.
+  - You can specify a permission when sending a broadcast.
+  - In Android 4.0 and higher, you can specify a [package](https://developer.android.com/guide/topics/manifest/manifest-element.html#package) with `setPackage(String)` when sending a broadcast.
+  - You can send local broadcasts with `LocalBroadcastManager`.
+- When you register a receiver, any app can send potentially malicious broadcasts to your app's receiver. There are three ways to limit the broadcasts that your app receives:
+  - You can specify a permission when registering a broadcast receiver.
+  - For manifest-declared receivers, you can set the [android:exported](https://developer.android.com/guide/topics/manifest/receiver-element.html#exported) attribute to "false" in the manifest. The receiver does not receive broadcasts from sources outside of the app.
+  - You can limit yourself to only local broadcasts with `LocalBroadcastManager`.
+- The namespace for broadcast actions is global. Make sure that action names and other strings are written in a namespace you own, or else you may inadvertently conflict with other apps.
+- Because a receiver's `onReceive(Context, Intent)` method runs on the main thread, it should execute and return quickly. If you need to perform long running work, be careful about spawning threads or starting background services because the system can kill the entire process after `onReceive()`returns. For more information, see [Effect on process state](https://developer.android.com/guide/components/broadcasts.html#effects-on-process-state) To perform long running work, we recommend:
+  - Calling `goAsync()` in your receiver's `onReceive()` method and passing the `BroadcastReceiver.PendingResult` to a background thread. This keeps the broadcast active after returning from `onReceive()`. However, even with this approach the system expects you to finish with the broadcast very quickly (under 10 seconds). It does allow you to move work to another thread to avoid glitching the main thread.
+  - Scheduling a job with the `JobScheduler`. For more information, see [Intelligent Job Scheduling](https://developer.android.com/topic/performance/scheduling.html).
+  - Do not start activities from broadcast receivers because the user experience is jarring; especially if there is more than one receiver. Instead, consider displaying a [notification](https://developer.android.com/guide/topics/ui/notifiers/notifications.html).
+
